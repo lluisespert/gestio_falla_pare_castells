@@ -6,8 +6,10 @@
     "\\src\\aplicacion",
     "\\src\\components",
     "\\src\\estilos",
+    "\\src\\img",
     "\\src\\pages",
     "\\src\\renders"
   ],
+  "SelectedNode": "\\backend\\app.py",
   "PreviewInSolutionExplorer": false
 }
