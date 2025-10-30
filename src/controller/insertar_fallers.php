@@ -1,70 +1,120 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-require_once 'config.php';
+ini_set('display_errors', 0);
+error_reporting(0);
+
+require_once __DIR__ . '/config.php';
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, Origin, Accept');
 
-// Recoger datos del formulario
-$input = json_decode(file_get_contents('php://input'), true);
+// Responder OPTIONS para CORS
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
-$nom = $input['nom'] ?? '';
-$cognoms = $input['cognoms'] ?? '';
-$domicili = $input['domicili'] ?? '';
-$telefon = $input['telefon'] ?? '';
-$dni = $input['dni'] ?? '';
-$data_naixement = $input['data_naixement'] ?? '';
-$email = $input['email'] ?? '';
-$edat = $input['edat'] ?? '';
-$grup_colaborador = $input['grup_colaborador'] ?? '';
-$data_alta = $input['data_alta'] ?? '';
-
-// Validación básica
-$campos = [
-    'nom', 'cognoms', 'domicili', 'telefon', 'dni', 'data_naixement', 'email', 'edat', 'grup_colaborador', 'data_alta'
-];
-$campos_vacios = [];
-foreach ($campos as $campo) {
-    if (empty($input[$campo])) {
-        $campos_vacios[] = $campo;
+try {
+    $input = json_decode(file_get_contents('php://input'), true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception('JSON incorrecto: ' . json_last_error_msg());
     }
-}
-if (count($campos_vacios) > 0) {
-    echo json_encode(['success' => false, 'message' => 'Faltan datos obligatorios: ' . implode(', ', $campos_vacios)]);
-    exit;
-}
 
-// Conexión a la base de datos usando config.php
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-if ($conn->connect_error) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Conexión fallida: " . $conn->connect_error
-    ]);
-    exit;
-}
+    // Mapear posibles nombres de campos (cat / es / en)
+    $nom = $input['nom'] ?? $input['nombre'] ?? $input['name'] ?? '';
+    $cognoms = $input['cognoms'] ?? $input['apellidos'] ?? $input['lastname'] ?? '';
+    $domicili = $input['domicili'] ?? $input['domicilio'] ?? $input['address'] ?? '';
+    $telefon = $input['telefon'] ?? $input['telefono'] ?? $input['phone'] ?? '';
+    $dni = $input['dni'] ?? $input['nif'] ?? $input['documento'] ?? '';
+    $data_naixement = $input['data_naixement'] ?? $input['fecha_nacimiento'] ?? $input['birth_date'] ?? '';
+    $email = $input['email'] ?? '';
+    $edat = isset($input['edat']) ? (int)$input['edat'] : (isset($input['edad']) ? (int)$input['edad'] : null);
+    $grup = $input['grup'] ?? $input['grupo'] ?? $input['grupo_colaborador'] ?? $input['group'] ?? '';
+    // colaborar puede venir como booleano, string "true"/"false" o 0/1
+    if (isset($input['colaborador'])) {
+        $colaborador = $input['colaborador'];
+    } elseif (isset($input['colaborator'])) {
+        $colaborador = $input['colaborator'];
+    } elseif (isset($input['is_colaborador'])) {
+        $colaborador = $input['is_colaborador'];
+    } else {
+        $colaborador = 0;
+    }
+    // Normalizar colaborador a 0/1
+    if (is_bool($colaborador)) {
+        $colaborador = $colaborador ? 1 : 0;
+    } elseif (is_string($colaborador)) {
+        $lc = strtolower($colaborador);
+        $colaborador = ($lc === 'true' || $lc === '1' || $lc === 'yes') ? 1 : 0;
+    } else {
+        $colaborador = (int)$colaborador;
+        $colaborador = $colaborador ? 1 : 0;
+    }
+    $data_alta = $input['data_alta'] ?? $input['fecha_alta'] ?? $input['signup_date'] ?? '';
 
-$stmt = $conn->prepare("INSERT INTO fallers (nom, cognoms, domicili, telefon, dni, data_naixement, email, edat, grup_colaborador, data_alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-if (!$stmt) {
-    echo json_encode(['success' => false, 'message' => 'Error en prepare: ' . $conn->error]);
-    $conn->close();
-    exit;
-}
-$stmt->bind_param("sss", $nom, $cognoms, $domicili, $telefon, $dni, $data_naixement, $email, $edat, $grup_colaborador, $data_alta);
+    // Validación básica (exigir los campos que la tabla no acepta nulos)
+    $required = [
+        'nom' => $nom,
+        'cognoms' => $cognoms,
+        'domicili' => $domicili,
+        'telefon' => $telefon,
+        'dni' => $dni,
+        'data_naixement' => $data_naixement,
+        'email' => $email,
+        'edat' => $edat,
+        'grup' => $grup,
+        'colaborador' => $colaborador,
+        'data_alta' => $data_alta
+    ];
+    $missing = [];
+    foreach ($required as $k => $v) {
+        if ($v === '' || $v === null) {
+            $missing[] = $k;
+        }
+    }
+    if (count($missing) > 0) {
+        throw new Exception('Faltan campos obligatorios: ' . implode(', ', $missing));
+    }
 
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Faller insertado correctamente']);
+    // Conexión
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if ($conn->connect_error) {
+        throw new Exception('Error de conexión: ' . $conn->connect_error);
+    }
+    $conn->set_charset('utf8mb4');
+
+    // Preparar INSERT acorde a la estructura bbdd.sql
+    $sql = "INSERT INTO fallers 
+        (nom, cognoms, domicili, telefon, dni, data_naixement, email, edat, grup, colaborador, data_alta)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        throw new Exception('Error en prepare: ' . $conn->error);
+    }
+
+    // Tipos: 7 strings, edat int, grup string, colaborador int, data_alta string => "sssssssisis"
+    $types = "sssssssisis";
+    if (!$stmt->bind_param(
+        $types,
+        $nom, $cognoms, $domicili, $telefon, $dni,
+        $data_naixement, $email, $edat, $grup, $colaborador, $data_alta
+    )) {
+        throw new Exception('Error en bind_param: ' . $stmt->error);
+    }
+
+    if (!$stmt->execute()) {
+        throw new Exception('Error al insertar: ' . $stmt->error);
+    }
+
+    echo json_encode(['success' => true, 'message' => 'Registro insertado', 'insert_id' => $stmt->insert_id]);
+
     $stmt->close();
     $conn->close();
-    exit;
-} else {
-    echo json_encode(['success' => false, 'message' => 'Error al insertar: ' . $stmt->error]);
-    $stmt->close();
-    $conn->close();
+} catch (Exception $e) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     exit;
 }
 ?>

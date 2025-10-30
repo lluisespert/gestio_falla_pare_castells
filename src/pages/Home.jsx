@@ -11,18 +11,24 @@ function Home() {
         <h1 className="display-4 fw-bold mb-3">Gestió Falla Pare Castells</h1>
         <p className="lead">Benvingut, tria una opció:</p>
       </div>
-      <div className="d-flex gap-4">
+      <div className="d-flex gap-4 home-actions">
         <button
-          className="btn btn-primary btn-lg px-5 shadow"
+          className="btn btn-primary btn-lg shadow"
           onClick={() => navigate("/Donar_alta_fallers")}
         >
           Donar de alta fallers
         </button>
         <button
-          className="btn btn-success btn-lg px-5 shadow"
+          className="btn btn-success btn-lg shadow"
           onClick={() => navigate("/pagaments")}
         >
           Pagaments
+        </button>
+        <button
+          className="btn btn-info btn-lg shadow"
+          onClick={() => navigate("/llistar_fallers")}
+        >
+          Llistar Fallers
         </button>
       </div>
     </div>
