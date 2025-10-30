@@ -466,3 +466,37 @@
     grid-template-columns: 1fr;
   }
 }
+
+.edit-field select,
+.form-field select {
+  padding: 12px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.25));
+  border: 1px solid rgba(255,255,255,0.05);
+  color: #e6eef8;
+  font-size: 15px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.edit-field select:hover,
+.form-field select:hover {
+  border-color: rgba(255,255,255,0.1);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.2));
+}
+
+.edit-field select:focus,
+.form-field select:focus {
+  outline: none;
+  border-color: rgba(45,212,191,0.4);
+  box-shadow: 0 0 0 3px rgba(45,212,191,0.1);
+}
+
+/* Estilo para las opciones del select */
+.edit-field select option,
+.form-field select option {
+  background: #0a1929;
+  color: #e6eef8;
+  padding: 8px;
+}

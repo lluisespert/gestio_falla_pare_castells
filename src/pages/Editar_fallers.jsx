@@ -85,7 +85,7 @@ export default function Editar_faller() {
       const text = await res.text();
       let data;
       try { data = JSON.parse(text); } catch { throw new Error('Resposta no JSON: ' + text.slice(0, 400)); }
-      if (!res.ok || data.success === false) throw new Error(data.message || 'No s’ha pogut actualitzar');
+      if (!res.ok || data.success === false) throw new Error(data.message || 'No sha pogut actualitzar');
 
       setMsg('Faller actualitzat correctament');
       setTimeout(() => navigate('/llistar_fallers', { replace: true }), 700);
@@ -140,7 +140,18 @@ export default function Editar_faller() {
             </div>
             <div className="edit-field">
               <label>Grup</label>
-              <input name="grup" value={form.grup} onChange={handleChange} />
+              <select name="grup" value={form.grup} onChange={handleChange} required>
+                <option value="">Selecciona un grup</option>
+                <option value="Cap dels pares és faller">Cap dels pares és faller</option>
+                <option value="Un dels pares es faller">Un dels pares es faller</option>
+                <option value="Els dos pares son fallers">Els dos pares son fallers</option>
+                <option value="Cap ascendet faller">Cap ascendet faller</option>
+                <option value="1 Ascendet faller">1 Ascendet faller</option>
+                <option value="2 Ascendets fallers">2 Ascendets fallers</option>
+                <option value="Fallers/falleres de brussó">Fallers/falleres de brussó</option>
+                <option value="Fallers d'honor">Fallers d'honor</option>
+                <option value="Familiar de faller/fallera">Familiar de faller/fallera</option>
+              </select>
             </div>
             <div className="edit-field">
               <label>Colaborador</label>
@@ -154,7 +165,7 @@ export default function Editar_faller() {
 
           <div className="edit-actions">
             <button type="button" className="btn btn-return" onClick={() => navigate('/llistar_fallers')}>
-              Cancel·lar
+              Cancelar
             </button>
             <button type="submit" className="btn" disabled={saving}>
               {saving ? 'Guardant...' : 'Guardar canvis'}

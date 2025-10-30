@@ -71,10 +71,9 @@ export default function Donar_alta_fallers() {
         throw new Error(data.message || 'Error en la petición');
       }
 
-      // Registro correcto: mostrar mensaje breve y redirigir al home
       setMsg(data.message || 'Registro insertado correctamente');
       setTimeout(() => {
-        navigate('/', { replace: true }); // cambiar '/' por '/home' si es necesario
+        navigate('/', { replace: true });
       }, 700);
 
       setForm({
@@ -147,7 +146,18 @@ export default function Donar_alta_fallers() {
 
             <label className="form-field">
               <span className="form-label">Grup</span>
-              <input name="grup" value={form.grup} onChange={handleChange} className="form-input" placeholder="Grup" />
+              <select name="grup" value={form.grup} onChange={handleChange} className="form-input" required>
+                <option value="">Selecciona un grup</option>
+                <option value="Cap dels pares és faller">Cap dels pares és faller</option>
+                <option value="Un dels pares es faller">Un dels pares es faller</option>
+                <option value="Els dos pares son fallers">Els dos pares son fallers</option>
+                <option value="Cap ascendet faller">Cap ascendet faller</option>
+                <option value="1 Ascendet faller">1 Ascendet faller</option>
+                <option value="2 Ascendets fallers">2 Ascendets fallers</option>
+                <option value="Fallers/falleres de brussó">Fallers/falleres de brussó</option>
+                <option value="Fallers d'honor">Fallers d'honor</option>
+                <option value="Familiar de faller/fallera">Familiar de faller/fallera</option>
+              </select>
             </label>
 
             <label className="form-field" style={{ alignItems: 'center' }}>
