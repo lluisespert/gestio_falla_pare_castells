@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import '../estilos/estilos.css';
 
 export default function Llistar_fallers() {
@@ -54,6 +56,103 @@ export default function Llistar_fallers() {
     }
     const path = `/editar_faller/${id}`;
     navigate(path);
+  };
+
+  const generatePDF = () => {
+    try {
+      const doc = new jsPDF('landscape'); // Orientación horizontal para más espacio
+      
+      // Configuración del documento
+      doc.setFontSize(20);
+      doc.text('Llista de Fallers - Falla Pare Castells', 20, 20);
+      
+      // Información adicional
+      doc.setFontSize(12);
+      doc.text(`Total de fallers mostrats: ${filtered.length}`, 20, 35);
+      doc.text(`Data de generació: ${new Date().toLocaleDateString('ca-ES')} ${new Date().toLocaleTimeString('ca-ES')}`, 20, 45);
+      
+      if (query) {
+        doc.text(`Filtrat per: "${query}"`, 20, 55);
+      }
+      
+      // Preparar datos para la tabla (TODOS los datos sin truncar)
+      const tableColumns = [
+        'ID', 'Nom', 'Cognoms', 'Domicili', 'Telefon', 'DNI', 'Data Naixement', 'Email', 'Edat', 'Grup', 'Colaborador', 'Data Alta'
+      ];
+      
+      const tableRows = filtered.map(faller => [
+        faller.id,
+        faller.nom || '',
+        faller.cognoms || '',
+        faller.domicili || '',
+        faller.telefon || '',
+        faller.dni || '',
+        faller.data_naixement || '',
+        faller.email || '',
+        faller.edat ?? '',
+        faller.grup || '',
+        faller.colaborador ? 'Sí' : 'No',
+        faller.data_alta || ''
+      ]);
+      
+      // Generar tabla con TODOS los datos
+      doc.autoTable({
+        head: [tableColumns],
+        body: tableRows,
+        startY: query ? 65 : 55,
+        styles: {
+          fontSize: 7, // Fuente más pequeña para acomodar más datos
+          cellPadding: 2,
+          overflow: 'linebreak',
+          halign: 'left'
+        },
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: 'bold',
+          halign: 'center',
+          fontSize: 8
+        },
+        alternateRowStyles: {
+          fillColor: [248, 249, 250]
+        },
+        columnStyles: {
+          0: { cellWidth: 15, halign: 'center' }, // ID
+          1: { cellWidth: 25 }, // Nom
+          2: { cellWidth: 30 }, // Cognoms  
+          3: { cellWidth: 45 }, // Domicili
+          4: { cellWidth: 25 }, // Telefon
+          5: { cellWidth: 25 }, // DNI
+          6: { cellWidth: 25, halign: 'center' }, // Data Naixement
+          7: { cellWidth: 45 }, // Email
+          8: { cellWidth: 15, halign: 'center' }, // Edat
+          9: { cellWidth: 35 }, // Grup
+          10: { cellWidth: 20, halign: 'center' }, // Colaborador
+          11: { cellWidth: 25, halign: 'center' }  // Data Alta
+        },
+        margin: { top: 15, right: 15, bottom: 15, left: 15 },
+        tableWidth: 'auto',
+        pageBreak: 'auto'
+      });
+      
+      // Añadir pie de página
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.text(`Pàgina ${i} de ${pageCount}`, doc.internal.pageSize.width - 50, doc.internal.pageSize.height - 15);
+      }
+      
+      // Generar nombre de archivo con timestamp
+      const timestamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+      const filename = `fallers_${timestamp}.pdf`;
+      
+      // Descargar PDF
+      doc.save(filename);
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      setErr('Error al generar el PDF');
+    }
   };
 
   return (
@@ -134,6 +233,18 @@ export default function Llistar_fallers() {
               </table>
             </div>
           )}
+          
+          {/* Botón de acción */}
+          <div className="form-actions" style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+            <button 
+              className="btn"
+              onClick={generatePDF}
+              style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}
+              disabled={filtered.length === 0}
+            >
+              📄 Descarregar PDF
+            </button>
+          </div>
         </div>
       </div>
     </div>

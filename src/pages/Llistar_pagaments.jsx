@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import '../estilos/estilos.css';
 
 export default function Llistar_pagaments() {
@@ -60,6 +62,113 @@ export default function Llistar_pagaments() {
   const totalQuantitat = pagamentsFiltrats.reduce((sum, p) => sum + parseFloat(p.quantitat || 0), 0);
   const totalAportat = pagamentsFiltrats.reduce((sum, p) => sum + parseFloat(p.aportat_pagament || 0), 0);
   const totalFalta = pagamentsFiltrats.reduce((sum, p) => sum + parseFloat(p.falta_per_aportar || 0), 0);
+
+  // Función para generar PDF de pagaments
+  const generatePDF = () => {
+    try {
+      const doc = new jsPDF('landscape');
+      
+      // Configuración del documento
+      doc.setFontSize(20);
+      doc.text('Llista de Pagaments - Falla Pare Castells', 20, 20);
+      
+      // Información adicional
+      doc.setFontSize(12);
+      doc.text(`Total de pagaments mostrats: ${pagamentsFiltrats.length}`, 20, 35);
+      doc.text(`Data de generació: ${new Date().toLocaleDateString('ca-ES')} ${new Date().toLocaleTimeString('ca-ES')}`, 20, 45);
+      
+      // Información de filtros aplicados
+      let yPosition = 55;
+      if (filtro) {
+        doc.text(`Filtrat per nom/comentaris: "${filtro}"`, 20, yPosition);
+        yPosition += 10;
+      }
+      if (metodoFiltro) {
+        doc.text(`Filtrat per mètode: "${metodoFiltro}"`, 20, yPosition);
+        yPosition += 10;
+      }
+      
+      // Resumen de totales
+      doc.setFontSize(10);
+      doc.text(`Total Quantitat: ${totalQuantitat.toFixed(2)} €  |  Total Aportat: ${totalAportat.toFixed(2)} €  |  Total Pendent: ${totalFalta.toFixed(2)} €`, 20, yPosition + 10);
+      
+      // Preparar datos para la tabla
+      const tableColumns = [
+        'ID', 'Faller', 'DNI', 'Comentaris', 'Quantitat', 'Data Pago', 'Mètode', 'Total Pago', 'Aportat', 'Pendent', '% Completat'
+      ];
+      
+      const tableRows = pagamentsFiltrats.map(pagament => [
+        pagament.id,
+        pagament.nom_complet || '',
+        pagament.dni || '',
+        pagament.comentaris || '',
+        `${pagament.quantitat} €`,
+        pagament.data_pagament_formatted || '',
+        pagament.metode_pagament || '',
+        `${pagament.total_pagament} €`,
+        `${pagament.aportat_pagament} €`,
+        `${pagament.falta_per_aportar} €`,
+        pagament.porcentatge_completat ? `${pagament.porcentatge_completat}%` : 'N/A'
+      ]);
+      
+      // Generar tabla
+      doc.autoTable({
+        head: [tableColumns],
+        body: tableRows,
+        startY: yPosition + 20,
+        styles: {
+          fontSize: 7,
+          cellPadding: 2,
+          overflow: 'linebreak',
+          halign: 'left'
+        },
+        headStyles: {
+          fillColor: [220, 53, 69], // Color rojo para diferenciar de fallers
+          textColor: 255,
+          fontStyle: 'bold',
+          halign: 'center',
+          fontSize: 8
+        },
+        alternateRowStyles: {
+          fillColor: [248, 249, 250]
+        },
+        columnStyles: {
+          0: { cellWidth: 15, halign: 'center' }, // ID
+          1: { cellWidth: 40 }, // Faller
+          2: { cellWidth: 25 }, // DNI
+          3: { cellWidth: 50 }, // Comentaris
+          4: { cellWidth: 25, halign: 'right' }, // Quantitat
+          5: { cellWidth: 25, halign: 'center' }, // Data Pago
+          6: { cellWidth: 25, halign: 'center' }, // Mètode
+          7: { cellWidth: 25, halign: 'right' }, // Total Pago
+          8: { cellWidth: 25, halign: 'right' }, // Aportat
+          9: { cellWidth: 25, halign: 'right' }, // Pendent
+          10: { cellWidth: 20, halign: 'center' } // % Completat
+        },
+        margin: { top: 15, right: 15, bottom: 15, left: 15 },
+        tableWidth: 'auto',
+        pageBreak: 'auto'
+      });
+      
+      // Añadir pie de página
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.text(`Pàgina ${i} de ${pageCount}`, doc.internal.pageSize.width - 50, doc.internal.pageSize.height - 15);
+      }
+      
+      // Generar nombre de archivo con timestamp
+      const timestamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+      const filename = `pagaments_${timestamp}.pdf`;
+      
+      // Descargar PDF
+      doc.save(filename);
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      setError('Error al generar el PDF');
+    }
+  };
 
   if (loading) {
     return (
@@ -249,8 +358,12 @@ export default function Llistar_pagaments() {
           )}
 
           <div className="form-actions" style={{ marginTop: '20px' }}>
-            <button className="btn" onClick={() => navigate('/')}>
-              Tornar a l'inici
+            <button 
+              className="btn btn-success" 
+              onClick={generatePDF}
+              disabled={loading || pagaments.length === 0}
+            >
+              Descarregar PDF
             </button>
           </div>
         </div>
