@@ -30,6 +30,12 @@ function Home() {
         >
           Llistar Fallers
         </button>
+        <button
+          className="btn btn-warning btn-lg shadow"
+          onClick={() => navigate("/llistar_pagaments")}
+        >
+          Llistar Pagaments
+        </button>
       </div>
     </div>
   );

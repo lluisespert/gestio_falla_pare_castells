@@ -7,6 +7,7 @@ import Donar_alta_fallers from "../pages/Donar_alta_fallers.jsx";
 import Llistar_fallers from "../pages/Llistar_fallers.jsx";
 import Editar_faller from "../pages/Editar_fallers.jsx";
 import Pagaments from "../pages/Pagaments.jsx";
+import Llistar_pagaments from "../pages/Llistar_pagaments.jsx";
 
 function App() {
     const [count, setCount] = useState(0)
@@ -20,6 +21,7 @@ function App() {
                     <Route path="/llistar_fallers" element={<Llistar_fallers />} />
                     <Route path="/editar_faller/:id" element={<Editar_faller />} />
                     <Route path="/pagaments" element={<Pagaments />} />
+                    <Route path="/llistar_pagaments" element={<Llistar_pagaments />} />
                 </Routes>
             </ScrollToTop>
         </Router>
