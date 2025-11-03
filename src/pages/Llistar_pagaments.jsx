@@ -212,13 +212,20 @@ export default function Llistar_pagaments() {
         <div className="form-card" style={{ maxWidth: '1200px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 className="form-title">Llista de Pagaments</h2>
-            <button 
-              className="btn" 
-              onClick={() => navigate('/pagaments')}
-              style={{ marginLeft: '10px' }}
-            >
-              Nou Pagament
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                className="btn btn-return" 
+                onClick={() => navigate('/')}
+              >
+                Tornar a Inici
+              </button>
+              <button 
+                className="btn" 
+                onClick={() => navigate('/pagaments')}
+              >
+                Nou Pagament
+              </button>
+            </div>
           </div>
 
           {/* Filtros */}

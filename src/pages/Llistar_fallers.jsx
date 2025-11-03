@@ -206,7 +206,7 @@ export default function Llistar_fallers() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(r => (
+                  {filtered.map((r) => (
                     <tr key={r.id}>
                       <td>{r.id}</td>
                       <td>{r.nom}</td>
@@ -222,8 +222,17 @@ export default function Llistar_fallers() {
                         <span className={`badge ${r.colaborador ? 'yes' : 'no'}`}>{r.colaborador ? 'Sí' : 'No'}</span>
                       </td>
                       <td>{r.data_alta}</td>
-                      <td className="row-actions" style={{ whiteSpace: 'nowrap' }}>
-                        <button type="button" className="action-btn edit-btn" onClick={() => handleEdit(r.id)}>
+                      <td className="row-actions" style={{ whiteSpace: 'nowrap', position: 'relative', zIndex: 100 }}>
+                        <button 
+                          type="button" 
+                          className="action-btn edit-btn" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleEdit(r.id);
+                          }}
+                          style={{ position: 'relative', zIndex: 100 }}
+                        >
                           Editar
                         </button>
                       </td>
