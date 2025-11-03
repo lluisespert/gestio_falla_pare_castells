@@ -1,7 +1,6 @@
 {
   "ExpandedNodes": [
     "",
-    "\\backend",
     "\\src",
     "\\src\\aplicacion",
     "\\src\\components",
@@ -10,6 +9,5 @@
     "\\src\\pages",
     "\\src\\renders"
   ],
-  "SelectedNode": "\\backend\\app.py",
   "PreviewInSolutionExplorer": false
 }
