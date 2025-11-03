@@ -16,7 +16,6 @@ export default function Editar_faller() {
     email: '',
     edat: '',
     grup: '',
-    colaborador: 0,
     data_alta: ''
   });
   const [loading, setLoading] = useState(true);
@@ -34,6 +33,11 @@ export default function Editar_faller() {
         try { data = JSON.parse(text); } catch { throw new Error('Resposta no JSON: ' + text.slice(0, 400)); }
         if (!res.ok || data.success === false) throw new Error(data.message || 'Error carregant el faller');
         const f = data.faller || {};
+        // Si el colaborador está marcado pero el grupo no es "Col.laborador", asignamos "Col.laborador"
+        let grupoFinal = f.grup || '';
+        if (f.colaborador && grupoFinal !== 'Col.laborador') {
+          grupoFinal = 'Col.laborador';
+        }
         setForm({
           nom: f.nom || '',
           cognoms: f.cognoms || '',
@@ -43,8 +47,7 @@ export default function Editar_faller() {
           data_naixement: f.data_naixement || '',
           email: f.email || '',
           edat: f.edat ?? '',
-          grup: f.grup || '',
-          colaborador: f.colaborador ? 1 : 0,
+          grup: grupoFinal,
           data_alta: f.data_alta || ''
         });
       } catch (e) {
@@ -57,10 +60,10 @@ export default function Editar_faller() {
   }, [id]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (checked ? 1 : 0) : value
+      [name]: value
     }));
   };
 
@@ -74,7 +77,7 @@ export default function Editar_faller() {
         id: Number(id),
         ...form,
         edat: form.edat === '' ? null : Number(form.edat),
-        colaborador: form.colaborador ? 1 : 0
+        colaborador: form.grup === 'Col.laborador' ? 1 : 0
       };
       const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost/gestio_falla_pare_castells';
       const res = await fetch(`${API_BASE}/src/controller/modificar_faller.php`, {
@@ -151,11 +154,8 @@ export default function Editar_faller() {
                 <option value="Fallers/falleres de brussó">Fallers/falleres de brussó</option>
                 <option value="Fallers d'honor">Fallers d'honor</option>
                 <option value="Familiar de faller/fallera">Familiar de faller/fallera</option>
+                <option value="Col.laborador">Col.laborador</option>
               </select>
-            </div>
-            <div className="edit-field">
-              <label>Colaborador</label>
-              <input type="checkbox" name="colaborador" checked={!!form.colaborador} onChange={handleChange} />
             </div>
             <div className="edit-field">
               <label>Data Alta</label>

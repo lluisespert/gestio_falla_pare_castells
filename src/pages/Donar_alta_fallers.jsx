@@ -14,7 +14,6 @@ export default function Donar_alta_fallers() {
     email: '',
     edat: '',
     grup: '',
-    colaborador: false,
     data_alta: ''
   });
   const [loading, setLoading] = useState(false);
@@ -22,10 +21,10 @@ export default function Donar_alta_fallers() {
   const [err, setErr] = useState(null);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setForm(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: value
     }));
   };
 
@@ -45,7 +44,7 @@ export default function Donar_alta_fallers() {
       email: form.email,
       edat: form.edat ? Number(form.edat) : null,
       grup: form.grup,
-      colaborador: form.colaborador ? 1 : 0,
+      colaborador: form.grup === 'Col.laborador' ? 1 : 0,
       data_alta: form.data_alta
     };
 
@@ -86,7 +85,6 @@ export default function Donar_alta_fallers() {
         email: '',
         edat: '',
         grup: '',
-        colaborador: false,
         data_alta: ''
       });
     } catch (error) {
@@ -157,15 +155,8 @@ export default function Donar_alta_fallers() {
                 <option value="Fallers/falleres de brussó">Fallers/falleres de brussó</option>
                 <option value="Fallers d'honor">Fallers d'honor</option>
                 <option value="Familiar de faller/fallera">Familiar de faller/fallera</option>
+                <option value="Col.laborador">Col.laborador</option>
               </select>
-            </label>
-
-            <label className="form-field" style={{ alignItems: 'center' }}>
-              <span className="form-label">Colaborador</span>
-              <div className="toggle-wrap">
-                <input id="colab" name="colaborador" checked={form.colaborador} onChange={handleChange} type="checkbox" className="toggle-input" />
-                <label htmlFor="colab" className="toggle-label" />
-              </div>
             </label>
 
             <label className="form-field">
