@@ -60,8 +60,16 @@ export default function Llistar_pagaments() {
 
   // Calcular totales
   const totalQuantitat = pagamentsFiltrats.reduce((sum, p) => sum + parseFloat(p.quantitat || 0), 0);
-  const totalAportat = pagamentsFiltrats.reduce((sum, p) => sum + parseFloat(p.aportat_pagament || 0), 0);
-  const totalFalta = pagamentsFiltrats.reduce((sum, p) => sum + parseFloat(p.falta_per_aportar || 0), 0);
+  const totalAportat = pagamentsFiltrats.reduce((sum, p) => sum + parseFloat(p.quantitat || 0), 0); // Suma de quantitats
+  
+  // Calcular total pendiente por faller único (evitar duplicados)
+  const fallersUnics = {};
+  pagamentsFiltrats.forEach(p => {
+    if (!fallersUnics[p.id_faller]) {
+      fallersUnics[p.id_faller] = parseFloat(p.falta_per_aportar || 0);
+    }
+  });
+  const totalFalta = Object.values(fallersUnics).reduce((sum, val) => sum + val, 0);
 
   // Función para generar PDF de pagaments
   const generatePDF = () => {
