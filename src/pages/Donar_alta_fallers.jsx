@@ -14,7 +14,8 @@ export default function Donar_alta_fallers() {
     email: '',
     edat: '',
     grup: '',
-    data_alta: ''
+    data_alta: '',
+    categoria: 'Home'
   });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -45,7 +46,8 @@ export default function Donar_alta_fallers() {
       edat: form.edat ? Number(form.edat) : null,
       grup: form.grup,
       colaborador: form.grup === 'Col.laborador' ? 1 : 0,
-      data_alta: form.data_alta
+      data_alta: form.data_alta,
+      categoria: form.categoria
     };
 
     try {
@@ -85,7 +87,8 @@ export default function Donar_alta_fallers() {
         email: '',
         edat: '',
         grup: '',
-        data_alta: ''
+        data_alta: '',
+        categoria: 'Home'
       });
     } catch (error) {
       setErr(error.message);
@@ -149,13 +152,20 @@ export default function Donar_alta_fallers() {
                 <option value="Cap dels pares és faller">Cap dels pares és faller</option>
                 <option value="Un dels pares es faller">Un dels pares es faller</option>
                 <option value="Els dos pares son fallers">Els dos pares son fallers</option>
-                <option value="Cap ascendet faller">Cap ascendet faller</option>
-                <option value="1 Ascendet faller">1 Ascendet faller</option>
-                <option value="2 Ascendets fallers">2 Ascendets fallers</option>
                 <option value="Fallers/falleres de brussó">Fallers/falleres de brussó</option>
                 <option value="Fallers d'honor">Fallers d'honor</option>
                 <option value="Familiar de faller/fallera">Familiar de faller/fallera</option>
                 <option value="Col.laborador">Col.laborador</option>
+              </select>
+            </label>
+
+            <label className="form-field">
+              <span className="form-label">Categoria</span>
+              <select name="categoria" value={form.categoria} onChange={handleChange} className="form-input" required>
+                <option value="Home">Home</option>
+                <option value="Dona">Dona</option>
+                <option value="Xiquet">Xiquet</option>
+                <option value="Xiqueta">Xiqueta</option>
               </select>
             </label>
 

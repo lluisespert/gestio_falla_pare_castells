@@ -35,6 +35,7 @@ $edat = ($input['edat'] === '' || !isset($input['edat'])) ? null : (int)$input['
 $grup = $input['grup'] ?? '';
 $colaborador = isset($input['colaborador']) ? (int)!!$input['colaborador'] : 0;
 $data_alta = $input['data_alta'] ?? '';
+$categoria = $input['categoria'] ?? 'Home';
 
 try {
   $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
@@ -42,16 +43,16 @@ try {
   $conn->set_charset('utf8mb4');
 
   $sql = "UPDATE fallers
-          SET nom=?, cognoms=?, domicili=?, telefon=?, dni=?, data_naixement=?, email=?, edat=?, `grup`=?, colaborador=?, data_alta=?
+          SET nom=?, cognoms=?, domicili=?, telefon=?, dni=?, data_naixement=?, email=?, edat=?, `grup`=?, colaborador=?, data_alta=?, categoria=?
           WHERE id=?";
   $stmt = $conn->prepare($sql);
   if (!$stmt) throw new Exception('Prepare: ' . $conn->error);
 
-  $types = 'sssssssisisi';
+  $types = 'sssssssisissi';
   $stmt->bind_param(
     $types,
     $nom, $cognoms, $domicili, $telefon, $dni, $data_naixement, $email,
-    $edat, $grup, $colaborador, $data_alta, $id
+    $edat, $grup, $colaborador, $data_alta, $categoria, $id
   );
 
   if (!$stmt->execute()) {

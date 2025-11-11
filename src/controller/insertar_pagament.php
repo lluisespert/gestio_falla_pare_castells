@@ -199,7 +199,7 @@ try {
   $conn->set_charset('utf8mb4');
 
   // Obtener faller (grup y edat)
-  $stmtF = $conn->prepare('SELECT nom, cognoms, edat, `grup` FROM fallers WHERE id = ? LIMIT 1');
+  $stmtF = $conn->prepare('SELECT nom, cognoms, dni, edat, `grup` FROM fallers WHERE id = ? LIMIT 1');
   if (!$stmtF) throw new Exception('Prepare: ' . $conn->error);
   $stmtF->bind_param('i', $id_faller);
   $stmtF->execute();
@@ -293,6 +293,17 @@ try {
     'success' => true,
     'message' => 'Pagament registrat correctament',
     'id' => $insert_id,
+    'recibo' => [
+      'nom_complet' => $faller['nom'] . ' ' . $faller['cognoms'],
+      'dni' => $faller['dni'],
+      'comentaris' => $comentaris,
+      'data_pagament' => $data_pagament,
+      'metode_pagament' => $metode_pagament,
+      'total_pagament' => $total_pagament,
+      'aportat_anterior' => $total_aportat_previo,
+      'quantitat_pagada' => $quantitat_actual,
+      'total_aportat' => $aportat_pagament_total
+    ],
     'resum_pagament' => [
       'faller' => $faller['nom'] . ' ' . $faller['cognoms'],
       'grup' => $grup,

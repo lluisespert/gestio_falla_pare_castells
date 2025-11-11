@@ -8,6 +8,8 @@ import Llistar_fallers from "../pages/Llistar_fallers.jsx";
 import Editar_faller from "../pages/Editar_fallers.jsx";
 import Pagaments from "../pages/Pagaments.jsx";
 import Llistar_pagaments from "../pages/Llistar_pagaments.jsx";
+import Total_quotes from "../pages/Total_quotes.jsx";
+import Percentatge from "../pages/Percentatge.jsx";
 
 function App() {
     const [count, setCount] = useState(0)
@@ -22,6 +24,8 @@ function App() {
                     <Route path="/editar_faller/:id" element={<Editar_faller />} />
                     <Route path="/pagaments" element={<Pagaments />} />
                     <Route path="/llistar_pagaments" element={<Llistar_pagaments />} />
+                    <Route path="/total_quotes" element={<Total_quotes />} />
+                    <Route path="/percentatge" element={<Percentatge />} />
                 </Routes>
             </ScrollToTop>
         </Router>

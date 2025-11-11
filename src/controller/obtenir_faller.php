@@ -23,7 +23,7 @@ try {
 
   $sql = "SELECT id, nom, cognoms, domicili, telefon, dni,
                  DATE_FORMAT(data_naixement,'%Y-%m-%d') AS data_naixement,
-                 email, edat, `grup`, colaborador,
+                 email, edat, `grup`, colaborador, categoria,
                  DATE_FORMAT(data_alta,'%Y-%m-%d') AS data_alta
           FROM fallers WHERE id = ?";
   $stmt = $conn->prepare($sql);

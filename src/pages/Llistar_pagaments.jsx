@@ -58,6 +58,34 @@ export default function Llistar_pagaments() {
     return (matchNom || matchComentaris) && matchMetodo;
   });
 
+  // Agrupar pagaments per faller
+  const pagamentsAgrupats = pagamentsFiltrats.reduce((acc, pagament) => {
+    const idFaller = pagament.id_faller;
+    
+    if (!acc[idFaller]) {
+      acc[idFaller] = {
+        id_faller: idFaller,
+        nom_complet: pagament.nom_complet,
+        dni: pagament.dni,
+        total_pagament: parseFloat(pagament.total_pagament || 0),
+        aportat_pagament: 0,
+        falta_per_aportar: parseFloat(pagament.falta_per_aportar || 0),
+        pagaments: []
+      };
+    }
+    
+    // Sumar la cantidad aportada de este pago
+    acc[idFaller].aportat_pagament += parseFloat(pagament.quantitat || 0);
+    
+    // Añadir el pago a la lista de pagos del faller
+    acc[idFaller].pagaments.push(pagament);
+    
+    return acc;
+  }, {});
+
+  // Convertir a array
+  const pagamentsAgrupatsList = Object.values(pagamentsAgrupats);
+
   // Calcular total quantitat de TODOS los pagos (sin filtrar)
   const totalQuantitat = pagaments.reduce((sum, p) => sum + parseFloat(p.quantitat || 0), 0);
   
@@ -284,7 +312,7 @@ export default function Llistar_pagaments() {
             </div>
           </div>
 
-          {pagamentsFiltrats.length === 0 ? (
+          {pagamentsAgrupatsList.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>
               <p>No s'han trobat pagaments amb els filtres aplicats.</p>
             </div>
@@ -319,57 +347,108 @@ export default function Llistar_pagaments() {
                     <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'right' }}>
                       Pendent
                     </th>
+                    <th style={{ padding: '12px', border: '1px solid #ddd', textAlign: 'center' }}>
+                      % Completat
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {pagamentsFiltrats.map((pagament) => (
-                    <tr key={pagament.id} style={{ 
-                      backgroundColor: parseFloat(pagament.falta_per_aportar) > 0 ? '#fff3cd' : '#d4edda'
-                    }}>
-                      <td style={{ padding: '10px', border: '1px solid #ddd' }}>
-                        <div>
-                          <strong>{pagament.nom_complet}</strong>
-                          <br />
-                          <small style={{ color: '#666' }}>DNI: {pagament.dni}</small>
-                        </div>
-                      </td>
-                      <td style={{ padding: '10px', border: '1px solid #ddd' }}>
-                        {pagament.comentaris}
-                      </td>
-                      <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'right' }}>
-                        <strong>{pagament.quantitat} €</strong>
-                      </td>
-                      <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'center' }}>
-                        {pagament.data_pagament_formatted}
-                      </td>
-                      <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'center' }}>
-                        <span style={{
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          backgroundColor: 
-                            pagament.metode_pagament === 'efectiu' ? '#ffeaa7' :
-                            pagament.metode_pagament === 'targeta' ? '#74b9ff' :
-                            pagament.metode_pagament === 'transferencia' ? '#a29bfe' :
-                            pagament.metode_pagament === 'bizum' ? '#fd79a8' : '#ddd',
-                          color: '#333'
-                        }}>
-                          {pagament.metode_pagament}
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'right' }}>
-                        {pagament.aportat_pagament} €
-                      </td>
-                      <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'right' }}>
-                        <span style={{ 
-                          color: parseFloat(pagament.falta_per_aportar) > 0 ? '#e17055' : '#00b894',
+                  {pagamentsAgrupatsList.map((faller) => {
+                    const percentatge = faller.total_pagament > 0 
+                      ? ((faller.aportat_pagament / faller.total_pagament) * 100).toFixed(1) 
+                      : 0;
+                    
+                    return (
+                      <React.Fragment key={faller.id_faller}>
+                        {/* Fila principal del faller con datos consolidados */}
+                        <tr style={{ 
+                          backgroundColor: faller.falta_per_aportar > 0 ? '#fff3cd' : '#d4edda',
                           fontWeight: 'bold'
                         }}>
-                          {pagament.falta_per_aportar} €
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                          <td style={{ padding: '10px', border: '1px solid #ddd' }} rowSpan={faller.pagaments.length + 1}>
+                            <div>
+                              <strong>{faller.nom_complet}</strong>
+                              <br />
+                              <small style={{ color: '#666' }}>DNI: {faller.dni}</small>
+                              <br />
+                              <small style={{ color: '#666' }}>
+                                {faller.pagaments.length} pagament{faller.pagaments.length !== 1 ? 's' : ''}
+                              </small>
+                            </div>
+                          </td>
+                          <td colSpan="4" style={{ padding: '10px', border: '1px solid #ddd', backgroundColor: '#f0f0f0' }}>
+                            <strong>TOTAL FALLER</strong>
+                          </td>
+                          <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'right', backgroundColor: '#f0f0f0' }}>
+                            <strong>{faller.aportat_pagament.toFixed(2)} €</strong>
+                          </td>
+                          <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'right', backgroundColor: '#f0f0f0' }}>
+                            <strong style={{ 
+                              color: faller.falta_per_aportar > 0 ? '#e17055' : '#00b894'
+                            }}>
+                              {faller.falta_per_aportar.toFixed(2)} €
+                            </strong>
+                          </td>
+                          <td style={{ padding: '10px', border: '1px solid #ddd', textAlign: 'center', backgroundColor: '#f0f0f0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ flex: 1, backgroundColor: '#e9ecef', borderRadius: '10px', height: '20px', overflow: 'hidden' }}>
+                                <div style={{
+                                  width: `${percentatge}%`,
+                                  height: '100%',
+                                  backgroundColor: percentatge >= 100 ? '#00b894' : percentatge >= 50 ? '#fdcb6e' : '#e17055',
+                                  transition: 'width 0.3s ease',
+                                  borderRadius: '10px'
+                                }}></div>
+                              </div>
+                              <span style={{ 
+                                fontWeight: 'bold',
+                                minWidth: '50px',
+                                color: percentatge >= 100 ? '#00b894' : percentatge >= 50 ? '#fdcb6e' : '#e17055'
+                              }}>
+                                {percentatge}%
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                        
+                        {/* Filas de detalle de cada pago */}
+                        {faller.pagaments.map((pagament, index) => (
+                          <tr key={pagament.id} style={{ 
+                            backgroundColor: '#ffffff',
+                            fontSize: '0.9em'
+                          }}>
+                            <td style={{ padding: '8px', border: '1px solid #ddd', paddingLeft: '20px' }}>
+                              {pagament.comentaris}
+                            </td>
+                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'right' }}>
+                              {pagament.quantitat} €
+                            </td>
+                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>
+                              {pagament.data_pagament_formatted}
+                            </td>
+                            <td style={{ padding: '8px', border: '1px solid #ddd', textAlign: 'center' }}>
+                              <span style={{
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                backgroundColor: 
+                                  pagament.metode_pagament === 'efectiu' ? '#ffeaa7' :
+                                  pagament.metode_pagament === 'targeta' ? '#74b9ff' :
+                                  pagament.metode_pagament === 'transferencia' ? '#a29bfe' :
+                                  pagament.metode_pagament === 'bizum' ? '#fd79a8' : '#ddd',
+                                color: '#333'
+                              }}>
+                                {pagament.metode_pagament}
+                              </span>
+                            </td>
+                            <td colSpan="3" style={{ padding: '8px', border: '1px solid #ddd', backgroundColor: '#fafafa' }}>
+                              <small style={{ color: '#999' }}>Pagament individual #{index + 1}</small>
+                            </td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

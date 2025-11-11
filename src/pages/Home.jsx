@@ -48,6 +48,18 @@ function Home() {
         >
           Llistar Pagaments
         </button>
+        <button
+          className="btn btn-secondary btn-lg shadow"
+          onClick={() => navigate("/total_quotes")}
+        >
+          Total de les quotes
+        </button>
+        <button
+          className="btn btn-dark btn-lg shadow"
+          onClick={() => navigate("/percentatge")}
+        >
+          Percentatge
+        </button>
       </div>
     </div>
   );

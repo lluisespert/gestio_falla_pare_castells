@@ -16,7 +16,8 @@ export default function Editar_faller() {
     email: '',
     edat: '',
     grup: '',
-    data_alta: ''
+    data_alta: '',
+    categoria: 'Home'
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,7 +49,8 @@ export default function Editar_faller() {
           email: f.email || '',
           edat: f.edat ?? '',
           grup: grupoFinal,
-          data_alta: f.data_alta || ''
+          data_alta: f.data_alta || '',
+          categoria: f.categoria || 'Home'
         });
       } catch (e) {
         setErr(e.message);
@@ -148,13 +150,19 @@ export default function Editar_faller() {
                 <option value="Cap dels pares és faller">Cap dels pares és faller</option>
                 <option value="Un dels pares es faller">Un dels pares es faller</option>
                 <option value="Els dos pares son fallers">Els dos pares son fallers</option>
-                <option value="Cap ascendet faller">Cap ascendet faller</option>
-                <option value="1 Ascendet faller">1 Ascendet faller</option>
-                <option value="2 Ascendets fallers">2 Ascendets fallers</option>
                 <option value="Fallers/falleres de brussó">Fallers/falleres de brussó</option>
                 <option value="Fallers d'honor">Fallers d'honor</option>
                 <option value="Familiar de faller/fallera">Familiar de faller/fallera</option>
                 <option value="Col.laborador">Col.laborador</option>
+              </select>
+            </div>
+            <div className="edit-field">
+              <label>Categoria</label>
+              <select name="categoria" value={form.categoria} onChange={handleChange} required>
+                <option value="Home">Home</option>
+                <option value="Dona">Dona</option>
+                <option value="Xiquet">Xiquet</option>
+                <option value="Xiqueta">Xiqueta</option>
               </select>
             </div>
             <div className="edit-field">
