@@ -12,7 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 ini_set('display_errors', 0);
 error_reporting(0);
 
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/tarifes_pagament.php';
 
 if (!$conexion) {
     echo json_encode([
@@ -22,19 +23,18 @@ if (!$conexion) {
     exit;
 }
 
-// Consulta que agrupa por usuario para evitar duplicar el total_pagament
+// Consulta de todos los fallers y sus aportaciones acumuladas (si existen).
 $query = "SELECT 
-            COALESCE(SUM(datos.total_pagament), 0) as total_pagament,
-            COALESCE(SUM(datos.aportat_total), 0) as aportat_pagament,
-            COUNT(DISTINCT datos.id_faller) as total_fallers
-          FROM (
-            SELECT 
-              id_faller,
-              MAX(total_pagament) as total_pagament,
-              SUM(quantitat) as aportat_total
+            f.id,
+            f.edat,
+            f.grup,
+            COALESCE(p.aportat_total, 0) as aportat_total
+          FROM fallers f
+          LEFT JOIN (
+            SELECT id_faller, SUM(quantitat) as aportat_total
             FROM pagaments
             GROUP BY id_faller
-          ) as datos";
+          ) p ON p.id_faller = f.id";
 
 $result = $conexion->query($query);
 
@@ -46,11 +46,17 @@ if (!$result) {
     exit;
 }
 
-$row = $result->fetch_assoc();
+$total_pagament = 0.0;
+$aportat_pagament = 0.0;
+$total_fallers = 0;
 
-$total_pagament = floatval($row['total_pagament']);
-$aportat_pagament = floatval($row['aportat_pagament']);
-$falta_per_aportar = $total_pagament - $aportat_pagament;
+while ($row = $result->fetch_assoc()) {
+    $total_fallers++;
+    $total_pagament += calcular_total_pagament($row['grup'], (int)$row['edat']);
+    $aportat_pagament += floatval($row['aportat_total']);
+}
+
+$falta_per_aportar = max(0, $total_pagament - $aportat_pagament);
 
 echo json_encode([
     'success' => true,
@@ -58,7 +64,7 @@ echo json_encode([
         'total_pagament' => $total_pagament,
         'aportat_pagament' => $aportat_pagament,
         'falta_per_aportar' => $falta_per_aportar,
-        'total_fallers' => intval($row['total_fallers'])
+        'total_fallers' => $total_fallers
     ]
 ]);
 

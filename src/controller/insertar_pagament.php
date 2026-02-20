@@ -4,6 +4,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 ini_set('log_errors', 1);
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/tarifes_pagament.php';
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
@@ -43,156 +44,6 @@ if ($id_faller <= 0 || $comentaris === '' || $quantitat <= 0 || !$valid_date) {
 $comentaris = mb_substr($comentaris, 0, 500);
 $quantitat = round($quantitat, 2);
 
-// helpers
-function remove_accents($str) {
-  $str = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str);
-  return $str === false ? '' : $str;
-}
-function norm($s) {
-  $s = mb_strtolower(trim($s));
-  $s = remove_accents($s);
-  $s = preg_replace('/\s+/', ' ', $s);
-  return $s;
-}
-function calcular_total($grup, $edat) {
-  $g = norm($grup);
-
-  // DEBUG: Información para diagnosticar detección de grupos
-  // TODO: ELIMINAR DESPUÉS DEL DIAGNÓSTICO
-  error_log("DEBUG calcular_total - Grup original: '" . $grup . "'");
-  error_log("DEBUG calcular_total - Grup normalizado: '" . $g . "'");
-  error_log("DEBUG calcular_total - Edad: " . $edat);
-  
-  // DEBUG: Probar diferentes búsquedas de brussó
-  error_log("DEBUG - ¿Contiene 'brusso'?: " . (strpos($g, 'brusso') !== false ? 'SÍ' : 'NO'));
-  error_log("DEBUG - ¿Contiene 'brussó'?: " . (strpos($grup, 'brussó') !== false ? 'SÍ' : 'NO'));
-  error_log("DEBUG - ¿Contiene 'Brussó'?: " . (strpos($grup, 'Brussó') !== false ? 'SÍ' : 'NO'));
-  error_log("DEBUG - ¿Contiene 'BRUSSÓ'?: " . (strpos(strtoupper($grup), 'BRUSSÓ') !== false ? 'SÍ' : 'NO'));
-
-  // ========== PRIORIDAD 1: GRUPOS ESPECIALES (independiente de edad) ==========
-  // SI SE DETECTA CUALQUIERA DE ESTOS GRUPOS, SE PARA LA COMPROBACIÓN Y SE RETORNA INMEDIATAMENTE
-  
-  // Grup: Fallers/falleres de brussó - siempre 400€ (PARA AQUÍ)
-  // DETECCIÓN SÚPER AMPLIA para todas las variaciones posibles de "brussó"
-  
-  $grup_original_lower = mb_strtolower($grup);
-  $grup_sin_acentos = remove_accents($grup_original_lower);
-  
-  // Buscar TODAS las variaciones posibles de "brussó"
-  $variaciones_brusso = [
-    'brussó', 'brusso', 'brusson', 'brasso', 'bruso', 'brusó',
-    'fallers de brussó', 'falleres de brussó', 'fallers de brusso', 
-    'falleres de brusso', 'fallers/falleres de brussó', 'fallers/falleres de brusso',
-    'fallers falleres de brussó', 'fallers falleres de brusso'
-  ];
-  
-  $es_brusso = false;
-  foreach ($variaciones_brusso as $variacion) {
-    if (strpos($grup_original_lower, $variacion) !== false || 
-        strpos($grup_sin_acentos, remove_accents($variacion)) !== false ||
-        strpos($g, remove_accents($variacion)) !== false) {
-      $es_brusso = true;
-      error_log("DEBUG: DETECTADO BRUSSÓ con variación: '" . $variacion . "'");
-      break;
-    }
-  }
-  
-  if ($es_brusso) {
-    error_log("DEBUG: *** CONFIRMADO GRUP BRUSSÓ - Retornando 400€ ***");
-    return 400.00; // DETIENE COMPLETAMENTE LA EVALUACIÓN
-  }
-  
-  // ========== DETECCIÓN DE EMERGENCIA PARA BRUSSÓ ==========
-  // Si contiene "bru" seguido de algo (comodín para brussó/brusso/etc.)
-  if (preg_match('/bru[sç]*/i', $grup) || preg_match('/bru[sç]*/i', $g)) {
-    error_log("DEBUG: *** DETECCIÓN DE EMERGENCIA - Contiene 'bru' - Retornando 400€ ***");
-    return 400.00;
-  }
-  
-  error_log("DEBUG: NO se detectó como grup brussó - Continuando...");
-  
-  // Grup: Fallers d'honor - siempre 100€ (PARA AQUÍ)
-  if (strpos($g, "fallers d'honor") !== false || strpos($g, 'fallers dhonor') !== false) {
-    error_log("DEBUG: DETECTADO GRUP FALLERS D'HONOR - Retornando 100€");
-    return 100.00; // DETIENE COMPLETAMENTE LA EVALUACIÓN
-  }
-  
-  // Grup: Familiar de faller/fallera - siempre 300€ (PARA AQUÍ)
-  if (strpos($g, 'familiar de faller/fallera') !== false || strpos($g, 'familiar de faller fallera') !== false) {
-    error_log("DEBUG: DETECTADO GRUP FAMILIAR - Retornando 300€");
-    return 300.00; // DETIENE COMPLETAMENTE LA EVALUACIÓN
-  }
-  
-  // ========== SI LLEGAMOS AQUÍ, NO ES NINGÚN GRUPO DE PRIORIDAD 1 ========== 
-
-  // ========== PRIORIDAD 2: GRUPOS CON VARIACIÓN POR EDAD ==========
-  
-  // Grup: Cap dels pares es faller
-  if (strpos($g, 'cap dels pares es faller') !== false || strpos($g, 'cap dels pares es') !== false) {
-    if ($edat <= 3) return 70.00;
-    if ($edat <= 10) return 100.00;
-    if ($edat <= 13) return 150.00;
-    // Si es mayor de 13 años en este grupo, aplicar tarifa general por edad
-  }
-  
-  // Grup: Un dels pares es faller
-  if (strpos($g, 'un dels pares es faller') !== false) {
-    if ($edat <= 3) return 40.00;
-    if ($edat <= 10) return 55.00;
-    if ($edat <= 13) return 85.00;
-    // Si es mayor de 13 años en este grupo, aplicar tarifa general por edad
-  }
-  
-  // Grup: Els dos pares son fallers
-  if (strpos($g, 'els dos pares son fallers') !== false) {
-    if ($edat <= 3) return 0.00;
-    if ($edat <= 10) return 35.00;
-    if ($edat <= 13) return 55.00;
-    // Si es mayor de 13 años en este grupo, aplicar tarifa general por edad
-  }
-  
-  // Grup: Cap ascendent faller (14-17 anys)
-  if (strpos($g, 'cap ascendent faller') !== false || strpos($g, 'cap ascendet faller') !== false) {
-    if ($edat >= 14 && $edat <= 17) return 250.00;
-    // Si no está en el rango 14-17, aplicar tarifa general por edad
-  }
-  
-  // Grup: 1 ascendent faller (14-17 anys)
-  if (strpos($g, '1 ascendent faller') !== false || strpos($g, '1 ascendet faller') !== false) {
-    if ($edat >= 14 && $edat <= 17) return 200.00;
-    // Si no está en el rango 14-17, aplicar tarifa general por edad
-  }
-  
-  // Grup: 2 ascendents fallers (14-17 anys)
-  if (strpos($g, '2 ascendents fallers') !== false || strpos($g, '2 ascendets fallers') !== false) {
-    if ($edat >= 14 && $edat <= 17) return 185.00;
-    // Si no está en el rango 14-17, aplicar tarifa general por edad
-  }
-
-  // ========== PRIORIDAD 3: TARIFA GENERAL POR EDAD (sin grup específico) ==========
-  
-  // 18-25 anys: tarifa general
-  if ($edat >= 18 && $edat <= 25) {
-    error_log("DEBUG: APLICANDO TARIFA GENERAL 18-25 años - Retornando 425€");
-    return 425.00;
-  }
-  
-  // 26+ anys: tarifa general
-  if ($edat >= 26) {
-    error_log("DEBUG: APLICANDO TARIFA GENERAL 26+ años - Retornando 575€");
-    return 575.00;
-  }
-  
-  // Menores de 18 sin grup específico: tarifa básica
-  if ($edat < 18) {
-    return 200.00; // Tarifa por defecto para menores sin grup específico
-  }
-
-  // Fallback final
-  error_log("DEBUG: LLEGÓ AL FALLBACK - Retornando 0€");
-  return 0.00;
-}
-
 try {
   $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
   if ($conn->connect_error) throw new Exception('Conexión: ' . $conn->connect_error);
@@ -217,9 +68,7 @@ try {
   $edat = (int)$faller['edat'];
   $grup = (string)$faller['grup'];
 
-  error_log("DEBUG PRINCIPAL: Antes de calcular_total - Grup: '" . $grup . "', Edat: " . $edat);
-  $total_pagament = calcular_total($grup, $edat);
-  error_log("DEBUG PRINCIPAL: Después de calcular_total - Total_pagament: " . $total_pagament);
+  $total_pagament = calcular_total_pagament($grup, $edat);
   
   // ========== CONSULTAR PAGOS PREVIOS DEL FALLER ==========
   $stmt_pagos = $conn->prepare('SELECT SUM(quantitat) as total_aportat_previo FROM pagaments WHERE id_faller = ?');
@@ -249,15 +98,8 @@ try {
   
   $data_aportacio = $data_pagament; // por defecto, misma fecha
   
-  // DEBUG: Información temporal para diagnosticar
-  $grup_normalizado = mb_strtolower(trim($grup));
-  $grup_sin_acentos = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $grup_normalizado);
-  
-  error_log("DEBUG PAGOS: Total a pagar: " . $total_pagament);
-  error_log("DEBUG PAGOS: Aportado previamente: " . $total_aportat_previo);
-  error_log("DEBUG PAGOS: Aporte actual: " . $quantitat_actual);
-  error_log("DEBUG PAGOS: Total aportado: " . $aportat_pagament_total);
-  error_log("DEBUG PAGOS: Falta por aportar: " . $falta_per_aportar);
+  $grup_normalizado = normalize_group_upper($grup);
+  $grup_sin_acentos = normalize_group_key($grup);
 
   // Insert
   $sql = "INSERT INTO pagaments (

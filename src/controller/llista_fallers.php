@@ -49,7 +49,6 @@ try {
                 edat, 
                 `grup`, 
                 colaborador,
-                categoria, 
                 DATE_FORMAT(data_alta, '%Y-%m-%d') AS data_alta 
             FROM fallers 
             ORDER BY id DESC";

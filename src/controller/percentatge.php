@@ -12,7 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 ini_set('display_errors', 0);
 error_reporting(0);
 
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/tarifes_pagament.php';
 
 if (!$conexion) {
     echo json_encode([
@@ -22,26 +23,24 @@ if (!$conexion) {
     exit;
 }
 
-// Consulta para obtener los fallers agrupados con su porcentaje de pago
+// Consulta de aportaciones por faller.
 $query = "SELECT 
             f.id,
             f.nom,
             f.cognoms,
             CONCAT(f.nom, ' ', f.cognoms) as nom_complet,
-            datos.total_pagament,
-            datos.aportat_pagament,
-            ROUND((datos.aportat_pagament / datos.total_pagament * 100), 2) as percentatge
+            f.edat,
+            f.grup,
+            datos.aportat_pagament
           FROM fallers f
           INNER JOIN (
             SELECT 
               id_faller,
-              MAX(total_pagament) as total_pagament,
               SUM(quantitat) as aportat_pagament
             FROM pagaments
             GROUP BY id_faller
           ) as datos ON f.id = datos.id_faller
-          WHERE datos.total_pagament > 0
-          ORDER BY percentatge DESC, f.cognoms, f.nom";
+          ORDER BY f.cognoms, f.nom";
 
 $result = $conexion->query($query);
 
@@ -57,12 +56,16 @@ $amb_80 = [];
 $sense_80 = [];
 
 while ($row = $result->fetch_assoc()) {
+    $total_pagament = calcular_total_pagament($row['grup'], (int)$row['edat']);
+    $aportat_pagament = floatval($row['aportat_pagament']);
+    $percentatge = $total_pagament > 0 ? round(($aportat_pagament / $total_pagament) * 100, 2) : 0.0;
+
     $faller = [
         'id' => intval($row['id']),
         'nom_complet' => $row['nom_complet'],
-        'total_pagament' => floatval($row['total_pagament']),
-        'aportat_pagament' => floatval($row['aportat_pagament']),
-        'percentatge' => floatval($row['percentatge'])
+        'total_pagament' => floatval($total_pagament),
+        'aportat_pagament' => $aportat_pagament,
+        'percentatge' => $percentatge
     ];
     
     if ($faller['percentatge'] >= 80) {
@@ -71,6 +74,9 @@ while ($row = $result->fetch_assoc()) {
         $sense_80[] = $faller;
     }
 }
+
+usort($amb_80, fn($a, $b) => $b['percentatge'] <=> $a['percentatge']);
+usort($sense_80, fn($a, $b) => $b['percentatge'] <=> $a['percentatge']);
 
 echo json_encode([
     'success' => true,

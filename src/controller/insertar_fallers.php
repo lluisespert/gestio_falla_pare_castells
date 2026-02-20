@@ -53,9 +53,6 @@ try {
     }
     $data_alta = $input['data_alta'] ?? $input['fecha_alta'] ?? $input['signup_date'] ?? '';
 
-    // Añadir categoria (Home, Dona, Xiquet, Xiqueta)
-    $categoria = $input['categoria'] ?? $input['category'] ?? 'Home';
-
     // Validación básica (exigir los campos que la tabla no acepta nulos)
     $required = [
         'nom' => $nom,
@@ -68,8 +65,7 @@ try {
         'edat' => $edat,
         'grup' => $grup,
         'colaborador' => $colaborador,
-        'data_alta' => $data_alta,
-        'categoria' => $categoria
+        'data_alta' => $data_alta
     ];
     $missing = [];
     foreach ($required as $k => $v) {
@@ -90,20 +86,20 @@ try {
 
     // Preparar INSERT acorde a la estructura bbdd.sql
     $sql = "INSERT INTO fallers 
-        (nom, cognoms, domicili, telefon, dni, data_naixement, email, edat, grup, colaborador, data_alta, categoria)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        (nom, cognoms, domicili, telefon, dni, data_naixement, email, edat, grup, colaborador, data_alta)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
         throw new Exception('Error en prepare: ' . $conn->error);
     }
 
-    // Tipos: 7 strings, edat int, grup string, colaborador int, data_alta string, categoria string => "sssssssissis"
-    $types = "sssssssissis";
+    // Tipos: 7 strings, edat int, grup string, colaborador int, data_alta string.
+    $types = "sssssssisis";
     if (!$stmt->bind_param(
         $types,
         $nom, $cognoms, $domicili, $telefon, $dni,
-        $data_naixement, $email, $edat, $grup, $colaborador, $data_alta, $categoria
+        $data_naixement, $email, $edat, $grup, $colaborador, $data_alta
     )) {
         throw new Exception('Error en bind_param: ' . $stmt->error);
     }

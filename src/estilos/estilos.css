@@ -338,12 +338,6 @@
 .yes{ background: linear-gradient(90deg,#dcfce7,#bbf7d0); color:#000 !important; }
 .no{ background: linear-gradient(90deg,#fff1f2,#ffe6ea); color:#000 !important; border:1px solid rgba(255,200,200,0.18); }
 
-/* Badges de categoria */
-.badge-home{ background: linear-gradient(90deg,#dbeafe,#bfdbfe); color:#000 !important; }
-.badge-dona{ background: linear-gradient(90deg,#fce7f3,#fbcfe8); color:#000 !important; }
-.badge-xiquet{ background: linear-gradient(90deg,#d1fae5,#a7f3d0); color:#000 !important; }
-.badge-xiqueta{ background: linear-gradient(90deg,#fed7aa,#fdba74); color:#000 !important; }
-
 /* Mensajes */
 .table-empty{
   padding: 28px;

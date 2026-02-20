@@ -11,7 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 ini_set('display_errors', 0);
 error_reporting(0);
 
-require_once 'config.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/tarifes_pagament.php';
 
 $id_faller = isset($_GET['id_faller']) ? intval($_GET['id_faller']) : 0;
 
@@ -38,14 +39,13 @@ $query = "SELECT
             f.cognoms,
             CONCAT(f.nom, ' ', f.cognoms) as nom_complet,
             f.dni,
-            COALESCE(p.total_pagament, 0) as total_pagament,
-            COALESCE(p.aportat_pagament, 0) as aportat_pagament,
-            COALESCE(p.total_pagament - p.aportat_pagament, 0) as falta_per_aportar
+            f.edat,
+            f.grup,
+            COALESCE(p.aportat_pagament, 0) as aportat_pagament
           FROM fallers f
           LEFT JOIN (
             SELECT 
               id_faller,
-              MAX(total_pagament) as total_pagament,
               SUM(quantitat) as aportat_pagament
             FROM pagaments
             WHERE id_faller = ?
@@ -67,6 +67,9 @@ if ($result->num_rows === 0) {
 }
 
 $row = $result->fetch_assoc();
+$total_pagament = calcular_total_pagament($row['grup'], (int)$row['edat']);
+$aportat_pagament = floatval($row['aportat_pagament']);
+$falta_per_aportar = max(0, $total_pagament - $aportat_pagament);
 
 echo json_encode([
     'success' => true,
@@ -74,9 +77,9 @@ echo json_encode([
         'id' => intval($row['id']),
         'nom_complet' => $row['nom_complet'],
         'dni' => $row['dni'],
-        'total_pagament' => floatval($row['total_pagament']),
-        'aportat_pagament' => floatval($row['aportat_pagament']),
-        'falta_per_aportar' => floatval($row['falta_per_aportar'])
+        'total_pagament' => floatval($total_pagament),
+        'aportat_pagament' => $aportat_pagament,
+        'falta_per_aportar' => floatval($falta_per_aportar)
     ]
 ]);
 

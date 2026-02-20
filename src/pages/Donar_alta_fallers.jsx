@@ -14,8 +14,7 @@ export default function Donar_alta_fallers() {
     email: '',
     edat: '',
     grup: '',
-    data_alta: '',
-    categoria: 'Home'
+    data_alta: ''
   });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -46,8 +45,7 @@ export default function Donar_alta_fallers() {
       edat: form.edat ? Number(form.edat) : null,
       grup: form.grup,
       colaborador: form.grup === 'Col.laborador' ? 1 : 0,
-      data_alta: form.data_alta,
-      categoria: form.categoria
+      data_alta: form.data_alta
     };
 
     try {
@@ -87,8 +85,7 @@ export default function Donar_alta_fallers() {
         email: '',
         edat: '',
         grup: '',
-        data_alta: '',
-        categoria: 'Home'
+        data_alta: ''
       });
     } catch (error) {
       setErr(error.message);
@@ -156,16 +153,6 @@ export default function Donar_alta_fallers() {
                 <option value="Fallers d'honor">Fallers d'honor</option>
                 <option value="Familiar de faller/fallera">Familiar de faller/fallera</option>
                 <option value="Col.laborador">Col.laborador</option>
-              </select>
-            </label>
-
-            <label className="form-field">
-              <span className="form-label">Categoria</span>
-              <select name="categoria" value={form.categoria} onChange={handleChange} className="form-input" required>
-                <option value="Home">Home</option>
-                <option value="Dona">Dona</option>
-                <option value="Xiquet">Xiquet</option>
-                <option value="Xiqueta">Xiqueta</option>
               </select>
             </label>
 

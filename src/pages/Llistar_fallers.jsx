@@ -44,8 +44,7 @@ export default function Llistar_fallers() {
       (r.cognoms || '').toLowerCase().includes(q) ||
       (r.dni || '').toLowerCase().includes(q) ||
       (r.email || '').toLowerCase().includes(q) ||
-      (r.grup || '').toLowerCase().includes(q) ||
-      (r.categoria || '').toLowerCase().includes(q)
+      (r.grup || '').toLowerCase().includes(q)
     );
   });
 
@@ -78,7 +77,7 @@ export default function Llistar_fallers() {
       
       // Preparar datos para la tabla (TODOS los datos sin truncar)
       const tableColumns = [
-        'ID', 'Nom', 'Cognoms', 'Domicili', 'Telefon', 'DNI', 'Data Naixement', 'Email', 'Edat', 'Grup', 'Categoria', 'Colaborador', 'Data Alta'
+        'ID', 'Nom', 'Cognoms', 'Domicili', 'Telefon', 'DNI', 'Data Naixement', 'Email', 'Edat', 'Grup', 'Colaborador', 'Data Alta'
       ];
       
       const tableRows = filtered.map(faller => [
@@ -92,7 +91,6 @@ export default function Llistar_fallers() {
         faller.email || '',
         faller.edat ?? '',
         faller.grup || '',
-        faller.categoria || 'Home',
         faller.colaborador ? 'Sí' : 'No',
         faller.data_alta || ''
       ]);
@@ -129,9 +127,8 @@ export default function Llistar_fallers() {
           7: { cellWidth: 45 }, // Email
           8: { cellWidth: 15, halign: 'center' }, // Edat
           9: { cellWidth: 30 }, // Grup
-          10: { cellWidth: 20, halign: 'center' }, // Categoria
-          11: { cellWidth: 20, halign: 'center' }, // Colaborador
-          12: { cellWidth: 25, halign: 'center' }  // Data Alta
+          10: { cellWidth: 20, halign: 'center' }, // Colaborador
+          11: { cellWidth: 25, halign: 'center' }  // Data Alta
         },
         margin: { top: 15, right: 15, bottom: 15, left: 15 },
         tableWidth: 'auto',
@@ -171,7 +168,7 @@ export default function Llistar_fallers() {
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               <input
                 className="form-input"
-                placeholder="Buscar per nom, dni, email, grup o categoria..."
+                placeholder="Buscar per nom, dni, email o grup..."
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 style={{ minWidth: 260 }}
@@ -203,7 +200,6 @@ export default function Llistar_fallers() {
                     <th>Email</th>
                     <th>Edat</th>
                     <th>Grup</th>
-                    <th>Categoria</th>
                     <th>Colaborador</th>
                     <th>Data Alta</th>
                     <th>Accions</th>
@@ -222,16 +218,6 @@ export default function Llistar_fallers() {
                       <td>{r.email}</td>
                       <td>{r.edat ?? ''}</td>
                       <td>{r.grup}</td>
-                      <td>
-                        <span className={`badge ${
-                          r.categoria === 'Home' ? 'badge-home' :
-                          r.categoria === 'Dona' ? 'badge-dona' :
-                          r.categoria === 'Xiquet' ? 'badge-xiquet' :
-                          r.categoria === 'Xiqueta' ? 'badge-xiqueta' : ''
-                        }`}>
-                          {r.categoria || 'Home'}
-                        </span>
-                      </td>
                       <td>
                         <span className={`badge ${r.colaborador ? 'yes' : 'no'}`}>{r.colaborador ? 'Sí' : 'No'}</span>
                       </td>

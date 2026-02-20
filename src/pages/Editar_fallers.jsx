@@ -16,8 +16,7 @@ export default function Editar_faller() {
     email: '',
     edat: '',
     grup: '',
-    data_alta: '',
-    categoria: 'Home'
+    data_alta: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,8 +48,7 @@ export default function Editar_faller() {
           email: f.email || '',
           edat: f.edat ?? '',
           grup: grupoFinal,
-          data_alta: f.data_alta || '',
-          categoria: f.categoria || 'Home'
+          data_alta: f.data_alta || ''
         });
       } catch (e) {
         setErr(e.message);
@@ -154,15 +152,6 @@ export default function Editar_faller() {
                 <option value="Fallers d'honor">Fallers d'honor</option>
                 <option value="Familiar de faller/fallera">Familiar de faller/fallera</option>
                 <option value="Col.laborador">Col.laborador</option>
-              </select>
-            </div>
-            <div className="edit-field">
-              <label>Categoria</label>
-              <select name="categoria" value={form.categoria} onChange={handleChange} required>
-                <option value="Home">Home</option>
-                <option value="Dona">Dona</option>
-                <option value="Xiquet">Xiquet</option>
-                <option value="Xiqueta">Xiqueta</option>
               </select>
             </div>
             <div className="edit-field">
