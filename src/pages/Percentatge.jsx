@@ -124,7 +124,7 @@ export default function Percentatge() {
           {/* Dos columnas */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
             
-            {/* Columna VERDE: Con ≥80% */}
+            {/* Columna VERDE: Con fallers ≥80% */}
             <div>
               <h3 style={{
                 padding: '15px',
@@ -134,10 +134,10 @@ export default function Percentatge() {
                 margin: '0',
                 textAlign: 'center'
               }}>
-                ✓ Amb ≥80% Pagat ({data.total_amb_80})
+                ✓ Fallers amb ≥80% Pagat ({data.total_amb_80})
               </h3>
               <div style={{
-                maxHeight: '600px',
+                maxHeight: '360px',
                 overflowY: 'auto',
                 border: '2px solid #00b894',
                 borderTop: 'none',
@@ -185,7 +185,7 @@ export default function Percentatge() {
               </div>
             </div>
 
-            {/* Columna ROJA: Con <80% */}
+            {/* Columna ROJA: Con fallers <80% */}
             <div>
               <h3 style={{
                 padding: '15px',
@@ -195,10 +195,10 @@ export default function Percentatge() {
                 margin: '0',
                 textAlign: 'center'
               }}>
-                ⚠ Amb &lt;80% Pagat ({data.total_sense_80})
+                ⚠ Fallers amb &lt;80% Pagat ({data.total_sense_80})
               </h3>
               <div style={{
-                maxHeight: '600px',
+                maxHeight: '360px',
                 overflowY: 'auto',
                 border: '2px solid #e17055',
                 borderTop: 'none',
@@ -245,7 +245,146 @@ export default function Percentatge() {
                 )}
               </div>
             </div>
+          </div>
 
+          {/* Familias */}
+          <div style={{ marginTop: '30px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+              <div style={{ padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '10px', textAlign: 'center' }}>
+                <h4 style={{ margin: 0, color: '#00b894' }}>{data.total_amb_80_families}</h4>
+                <p style={{ margin: '8px 0 0', color: '#666' }}>Famílies amb ≥80%</p>
+              </div>
+              <div style={{ padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '10px', textAlign: 'center' }}>
+                <h4 style={{ margin: 0, color: '#e17055' }}>{data.total_sense_80_families}</h4>
+                <p style={{ margin: '8px 0 0', color: '#666' }}>Famílies amb &lt;80%</p>
+              </div>
+              <div style={{ padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '10px', textAlign: 'center' }}>
+                <h4 style={{ margin: 0, color: '#0984e3' }}>{data.total_amb_80_families + data.total_sense_80_families}</h4>
+                <p style={{ margin: '8px 0 0', color: '#666' }}>Total Famílies</p>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+              <div>
+                <h3 style={{
+                  padding: '15px',
+                  backgroundColor: '#00b894',
+                  color: 'white',
+                  borderRadius: '8px 8px 0 0',
+                  margin: '0',
+                  textAlign: 'center'
+                }}>
+                  ✓ Famílies amb ≥80% ({data.total_amb_80_families})
+                </h3>
+                <div style={{
+                  maxHeight: '360px',
+                  overflowY: 'auto',
+                  border: '2px solid #00b894',
+                  borderTop: 'none',
+                  borderRadius: '0 0 8px 8px',
+                  backgroundColor: '#ffffff'
+                }}>
+                  {data.amb_80_families.length === 0 ? (
+                    <p style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                      No hi ha famílies amb ≥80% pagat
+                    </p>
+                  ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead style={{ position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 10 }}>
+                        <tr>
+                          <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Família</th>
+                          <th style={{ padding: '12px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Aportat</th>
+                          <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.amb_80_families.map((family, index) => (
+                          <tr key={family.id} style={{ backgroundColor: index % 2 === 0 ? '#fff' : '#f9f9f9' }}>
+                            <td style={{ padding: '12px', borderBottom: '1px solid #eee' }}>
+                              <strong>{family.nom_complet}</strong>
+                            </td>
+                            <td style={{ padding: '12px', textAlign: 'right', borderBottom: '1px solid #eee' }}>
+                              {formatEuro(family.aportat_pagament)} / {formatEuro(family.total_pagament)}
+                            </td>
+                            <td style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #eee' }}>
+                              <span style={{
+                                padding: '5px 12px',
+                                borderRadius: '20px',
+                                backgroundColor: '#00b894',
+                                color: 'white',
+                                fontWeight: 'bold'
+                              }}>
+                                {family.percentatge}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 style={{
+                  padding: '15px',
+                  backgroundColor: '#e17055',
+                  color: 'white',
+                  borderRadius: '8px 8px 0 0',
+                  margin: '0',
+                  textAlign: 'center'
+                }}>
+                  ⚠ Famílies amb &lt;80% ({data.total_sense_80_families})
+                </h3>
+                <div style={{
+                  maxHeight: '360px',
+                  overflowY: 'auto',
+                  border: '2px solid #e17055',
+                  borderTop: 'none',
+                  borderRadius: '0 0 8px 8px',
+                  backgroundColor: '#ffffff'
+                }}>
+                  {data.sense_80_families.length === 0 ? (
+                    <p style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+                      No hi ha famílies amb &lt;80% pagat
+                    </p>
+                  ) : (
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead style={{ position: 'sticky', top: 0, backgroundColor: '#f8f9fa', zIndex: 10 }}>
+                        <tr>
+                          <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Família</th>
+                          <th style={{ padding: '12px', textAlign: 'right', borderBottom: '2px solid #ddd' }}>Aportat</th>
+                          <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.sense_80_families.map((family, index) => (
+                          <tr key={family.id} style={{ backgroundColor: index % 2 === 0 ? '#fff' : '#f9f9f9' }}>
+                            <td style={{ padding: '12px', borderBottom: '1px solid #eee' }}>
+                              <strong>{family.nom_complet}</strong>
+                            </td>
+                            <td style={{ padding: '12px', textAlign: 'right', borderBottom: '1px solid #eee' }}>
+                              {formatEuro(family.aportat_pagament)} / {formatEuro(family.total_pagament)}
+                            </td>
+                            <td style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #eee' }}>
+                              <span style={{
+                                padding: '5px 12px',
+                                borderRadius: '20px',
+                                backgroundColor: family.percentatge >= 50 ? '#fdcb6e' : '#e17055',
+                                color: 'white',
+                                fontWeight: 'bold'
+                              }}>
+                                {family.percentatge}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

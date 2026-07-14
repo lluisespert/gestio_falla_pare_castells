@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 try {
     // Cargar configuración
     require_once __DIR__ . '/config.php';
+    require_once __DIR__ . '/tarifes_pagament.php';
     
     // Verificar constantes de BD
     if (!defined('DB_HOST') || !defined('DB_USER') || !defined('DB_PASS') || !defined('DB_NAME')) {
@@ -44,6 +45,7 @@ try {
                 domicili, 
                 telefon, 
                 dni, 
+                familia_id,
                 DATE_FORMAT(data_naixement, '%Y-%m-%d') AS data_naixement, 
                 email, 
                 edat, 
@@ -65,6 +67,8 @@ try {
         $r['id'] = (int)$r['id'];
         $r['edat'] = isset($r['edat']) ? (int)$r['edat'] : null;
         $r['colaborador'] = (int)$r['colaborador'];
+        $r['familia_id'] = isset($r['familia_id']) ? (int)$r['familia_id'] : null;
+        $r['total_pagament'] = calcular_total_pagament($r['grup'], $r['edat']);
         $rows[] = $r;
     }
 

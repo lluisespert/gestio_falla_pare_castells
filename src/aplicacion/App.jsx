@@ -4,6 +4,9 @@ import '../estilos/estilos.css';
 import ScrollToTop from "../components/ScrollToTop.jsx";
 import Home from "../pages/Home.jsx";
 import Donar_alta_fallers from "../pages/Donar_alta_fallers.jsx";
+import Donar_alta_familia from "../pages/Donar_alta_familia.jsx";
+import Families from "../pages/Families.jsx";
+import Llistar_families from "../pages/Llistar_families.jsx";
 import Llistar_fallers from "../pages/Llistar_fallers.jsx";
 import Editar_faller from "../pages/Editar_fallers.jsx";
 import Pagaments from "../pages/Pagaments.jsx";
@@ -20,6 +23,9 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/Donar_alta_fallers" element={<Donar_alta_fallers />} />
+                    <Route path="/Donar_alta_familia" element={<Donar_alta_familia />} />
+                    <Route path="/families" element={<Families />} />
+                    <Route path="/llistar_families" element={<Llistar_families />} />
                     <Route path="/llistar_fallers" element={<Llistar_fallers />} />
                     <Route path="/editar_faller/:id" element={<Editar_faller />} />
                     <Route path="/pagaments" element={<Pagaments />} />

@@ -31,16 +31,34 @@ function Home() {
           Donar de alta fallers
         </button>
         <button
+          className="btn btn-secondary btn-lg shadow"
+          onClick={() => navigate("/Donar_alta_familia")}
+        >
+          Donar de alta una família
+        </button>
+        <button
+          className="btn btn-info btn-lg shadow"
+          onClick={() => navigate("/families")}
+        >
+          Famílies
+        </button>
+        <button
+          className="btn btn-secondary btn-lg shadow"
+          onClick={() => navigate("/llistar_families")}
+        >
+          Llistar Famílies
+        </button>
+        <button
+          className="btn btn-warning btn-lg shadow"
+          onClick={() => navigate("/llistar_fallers")}
+        >
+          Llistar Fallers
+        </button>
+        <button
           className="btn btn-success btn-lg shadow"
           onClick={() => navigate("/pagaments")}
         >
           Pagaments
-        </button>
-        <button
-          className="btn btn-info btn-lg shadow"
-          onClick={() => navigate("/llistar_fallers")}
-        >
-          Llistar Fallers
         </button>
         <button
           className="btn btn-warning btn-lg shadow"

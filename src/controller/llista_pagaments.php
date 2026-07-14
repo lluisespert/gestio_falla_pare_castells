@@ -11,6 +11,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/tarifes_pagament.php';
 
+// Detect whether `pagaments` table contains `id_familia` column (harmless, may be used by frontend later)
+$has_id_familia = false;
+$colCheck = $conexion->query("SHOW COLUMNS FROM pagaments LIKE 'id_familia'");
+if ($colCheck && $colCheck->num_rows > 0) {
+    $has_id_familia = true;
+}
+
 try {
     // Consulta mejorada que incluye grup y edat del faller
     $sql = "SELECT 
@@ -28,9 +35,12 @@ try {
                 f.cognoms,
                 f.dni,
                 f.edat,
-                f.grup
+                f.grup,
+                f.familia_id,
+                fam.apellidos AS familia_apellidos
             FROM pagaments p 
-            INNER JOIN fallers f ON p.id_faller = f.id 
+            INNER JOIN fallers f ON p.id_faller = f.id
+            LEFT JOIN familias fam ON f.familia_id = fam.id
             ORDER BY p.data_pagament DESC, p.id DESC";
     
     $result = $conexion->query($sql);

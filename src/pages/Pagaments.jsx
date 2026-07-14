@@ -13,45 +13,87 @@ export default function Pagaments() {
     metode_pagament: ''
   });
   const [fallers, setFallers] = useState([]);
+  const [families, setFamilies] = useState([]);
+  const [pagaments, setPagaments] = useState([]);
+  const [selectedFamilyId, setSelectedFamilyId] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingFallers, setLoadingFallers] = useState(true);
   const [msg, setMsg] = useState(null);
   const [err, setErr] = useState(null);
   const [fallerInfo, setFallerInfo] = useState(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
+  const [insertedIds, setInsertedIds] = useState(null);
 
-  // Cargar lista de fallers al montar el componente
+  // Cargar lista de fallers, famílies y pagaments al montar el componente
   useEffect(() => {
-    const loadFallers = async () => {
+    const loadInitialData = async () => {
       try {
         const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost/gestio_falla_pare_castells';
-        const res = await fetch(`${API_BASE}/src/controller/llista_fallers.php?format=json`);
-        const text = await res.text();
-        const data = JSON.parse(text);
-        if (!data.success) throw new Error(data.message || 'Error al cargar fallers');
-        setFallers(data.data || []);
+        const [fallerRes, familyRes, paymentRes] = await Promise.all([
+          fetch(`${API_BASE}/src/controller/llista_fallers.php?format=json`),
+          fetch(`${API_BASE}/src/controller/llista_familias.php`),
+          fetch(`${API_BASE}/src/controller/llista_pagaments.php`)
+        ]);
+
+        const [fallerText, familyText, paymentText] = await Promise.all([
+          fallerRes.text(),
+          familyRes.text(),
+          paymentRes.text()
+        ]);
+
+        const fallerData = JSON.parse(fallerText);
+        const familyData = JSON.parse(familyText);
+        const paymentData = JSON.parse(paymentText);
+
+        if (!fallerRes.ok || fallerData.success === false) {
+          throw new Error(fallerData.message || 'Error al cargar fallers');
+        }
+        if (!familyRes.ok || familyData.success === false) {
+          throw new Error(familyData.message || 'Error al cargar famílies');
+        }
+        if (!paymentRes.ok || paymentData.success === false) {
+          throw new Error(paymentData.message || 'Error al cargar pagaments');
+        }
+
+        setFallers(fallerData.data || []);
+        setFamilies(familyData.data || []);
+        setPagaments(paymentData.data || []);
       } catch (e) {
         setErr(e.message);
       } finally {
         setLoadingFallers(false);
       }
     };
-    loadFallers();
+
+    loadInitialData();
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'id_familia') {
+      setSelectedFamilyId(value);
+      if (value) {
+        setForm(prev => ({ ...prev, id_faller: '' }));
+        setFallerInfo(null);
+      }
+    }
+
+    if (name === 'id_faller') {
+      setForm(prev => ({ ...prev, id_faller: value }));
+      if (value) {
+        setSelectedFamilyId('');
+        loadFallerInfo(value);
+      } else {
+        setFallerInfo(null);
+      }
+      return;
+    }
+
     setForm(prev => ({
       ...prev,
       [name]: value
     }));
-
-    // Si cambia el faller, cargar su información
-    if (name === 'id_faller' && value) {
-      loadFallerInfo(value);
-    } else if (name === 'id_faller' && !value) {
-      setFallerInfo(null);
-    }
   };
 
   const loadFallerInfo = async (id_faller) => {
@@ -157,7 +199,8 @@ export default function Pagaments() {
     setErr(null);
 
     const payload = {
-      id_faller: Number(form.id_faller),
+      id_faller: form.id_faller ? Number(form.id_faller) : null,
+      id_familia: selectedFamilyId ? Number(selectedFamilyId) : null,
       comentaris: form.comentaris,
       quantitat: parseFloat(form.quantitat),
       data_pagament: form.data_pagament,
@@ -189,6 +232,7 @@ export default function Pagaments() {
       }
 
       setMsg(data.message || 'Pagament registrat correctament');
+      if (data.inserted_ids) setInsertedIds(data.inserted_ids);
       
       // Generar PDF del recibo
       if (data.recibo) {
@@ -228,7 +272,7 @@ export default function Pagaments() {
                 value={form.id_faller} 
                 onChange={handleChange} 
                 className="form-input" 
-                required
+                required={!selectedFamilyId}
                 disabled={loadingFallers}
               >
                 <option value="">
@@ -240,6 +284,25 @@ export default function Pagaments() {
                   </option>
                 ))}
               </select>
+              <small style={{ color: '#6c757d' }}>Si seleccionas una família, el faller queda desactivat.</small>
+            </label>
+
+            <label className="form-field">
+              <span className="form-label">Família</span>
+              <select
+                name="id_familia"
+                value={selectedFamilyId}
+                onChange={handleChange}
+                className="form-input"
+                required={!form.id_faller}
+                disabled={loadingFallers}
+              >
+                <option value="">Selecciona una família</option>
+                {families.map((fam) => (
+                  <option key={fam.id} value={fam.id}>{fam.apellidos}</option>
+                ))}
+              </select>
+              <small style={{ color: '#6c757d' }}>Pago por família o per faller, no tots dos.</small>
             </label>
 
             <label className="form-field">
@@ -398,7 +461,88 @@ export default function Pagaments() {
             </button>
           </div>
 
+          <div style={{ marginTop: '30px', padding: '22px', backgroundColor: '#f7f9fb', borderRadius: '12px', border: '1px solid #e4e7ec' }}>
+            <h3 className="form-title" style={{ fontSize: '1.25rem' }}>Veure Família</h3>
+            <p style={{ margin: '10px 0 16px', color: '#555' }}>Selecciona una família per veure els seus components i els pagaments totals registrats.</p>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <label className="form-field">
+                <span className="form-label">Família</span>
+                <select
+                  value={selectedFamilyId}
+                  onChange={(e) => setSelectedFamilyId(e.target.value)}
+                  className="form-input"
+                  disabled={loadingFallers}
+                >
+                  <option value="">Selecciona una família</option>
+                  {families.map((fam) => (
+                    <option key={fam.id} value={fam.id}>{fam.apellidos}</option>
+                  ))}
+                </select>
+              </label>
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedFamilyId('')}
+                  disabled={loadingFallers || !selectedFamilyId}
+                >
+                  Netejar selecció
+                </button>
+              </div>
+            </div>
+            {selectedFamilyId ? (
+              (() => {
+                const members = fallers.filter((f) => String(f.familia_id) === String(selectedFamilyId));
+                const familyPayments = pagaments.filter((p) => String(p.familia_id) === String(selectedFamilyId));
+                const totalFamilyPayments = familyPayments.reduce((sum, p) => sum + parseFloat(p.quantitat || 0), 0);
+
+                return (
+                  <div style={{ marginTop: '20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: '16px', marginBottom: '18px' }}>
+                      <div style={{ padding: '14px', borderRadius: '10px', backgroundColor: '#ffffff', border: '1px solid #dde3ea' }}>
+                        <strong>Components</strong>
+                        <div style={{ marginTop: '8px', fontSize: '1.5rem', color: '#2d8cf0' }}>{members.length}</div>
+                      </div>
+                      <div style={{ padding: '14px', borderRadius: '10px', backgroundColor: '#ffffff', border: '1px solid #dde3ea' }}>
+                        <strong>Pagaments totals</strong>
+                        <div style={{ marginTop: '8px', fontSize: '1.5rem', color: '#00b894' }}>{totalFamilyPayments.toFixed(2)} €</div>
+                      </div>
+                      <div style={{ padding: '14px', borderRadius: '10px', backgroundColor: '#ffffff', border: '1px solid #dde3ea' }}>
+                        <strong>Pagaments registrats</strong>
+                        <div style={{ marginTop: '8px', fontSize: '1.5rem', color: '#ffb400' }}>{familyPayments.length}</div>
+                      </div>
+                    </div>
+
+                    {members.length === 0 ? (
+                      <div style={{ padding: '16px', borderRadius: '10px', backgroundColor: '#fff6f0', border: '1px solid #f6c7b6', color: '#8a4b2f' }}>
+                        Aquesta família encara no té cap component registrat.
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: '10px' }}>
+                        <strong>Components de la família:</strong>
+                        <ul style={{ marginTop: '10px', paddingLeft: '20px', color: '#333' }}>
+                          {members.slice(0, 8).map((member) => (
+                            <li key={member.id}>{member.nom} {member.cognoms}</li>
+                          ))}
+                          {members.length > 8 && <li>i {members.length - 8} més...</li>}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()
+            ) : (
+              <div style={{ marginTop: '20px', color: '#6c757d' }}>Selecciona una família per veure informació detallada.</div>
+            )}
+          </div>
+
           {msg && <div className="msg-success">{msg}</div>}
+          {insertedIds && (
+            <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#fff9e6', borderRadius: '8px', border: '1px solid #ffe1a8' }}>
+              <strong>Pagament distribuït als IDs:</strong>
+              <div style={{ marginTop: '6px', color: '#333' }}>{insertedIds.join(', ')}</div>
+            </div>
+          )}
           {err && <div className="msg-error">{err}</div>}
         </form>
       </div>
